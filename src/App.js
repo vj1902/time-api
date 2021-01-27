@@ -1,46 +1,47 @@
 import React, { useState, useEffect } from "react";
 import axios from 'axios'
 import Datatable from './Datatable'
-import { Dropdown } from 'react-bootstrap'
 
 function App() {
 
-  const url='http://timeapi.kaaylabs.com/api/v1/project_view/'
-  const [projects, setProjects]= useState(null)
-
-  let content = null
-
-    useEffect(()=>{
-      axios.get(url)
+  const [projects, setProjects]= useState([])
+  const [q,setQ]= useState("")
+ 
+  useEffect(()=>{
+    axios
+      .get('http://timeapi.kaaylabs.com/api/v1/project_view/')
       .then( response =>{
-        setProjects(response.data)
-    })
-    }, [url] )
+        setProjects(response.data.data)
+      })
+  },[])
 
-    if(projects){
-      content=
+  function filt(rows) {
+    if(q==="All"){
+      return rows
+    }
+    else{
+      return rows.filter((row)=>row.status.indexOf(q)>-1)
+    }
+  }
+
+  return (
+
+    <div>
+
+      <br/>
+      <select onChange={(e)=>setQ(e.target.value)}>
+        <option value="All">All</option>
+        {projects.map(st => st.status).filter((v, i, a) => a.indexOf(v) === i).map(item => (
+          <option key={item} value={item}>{item}</option>))}
+      </select>
+      
       <div>
         <br/>
-        <Dropdown align='right'>
-          <Dropdown.Toggle variant="success" id="dropdown-basic">
-            Filter Projects
-          </Dropdown.Toggle>
-    
-          <Dropdown.Menu>
-            <Dropdown.Item >All</Dropdown.Item>
-            <Dropdown.Item onClick=''>In Progress</Dropdown.Item>
-            <Dropdown.Item href="#/action-3">Completed</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-      <br/>      
-        <Datatable val={projects} />
+        <Datatable val={filt(projects)} />
       </div>
-    }
-    return(
-      <div>
-        {content}
-      </div>
-    )
+      
+    </div>
+  )
 } 
 
 export default App;
